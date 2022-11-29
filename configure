@@ -1,7 +1,7 @@
 #! /bin/sh
 # configure script for LoopTools
 # note: has nothing to do with GNU autoconf
-# last modified 28 Sep 16 th
+# last modified 26 Feb 18 th
 
 
 exec 2> ${LOGFILE:-/dev/null} 3>&1
@@ -97,13 +97,15 @@ CONF_STATIC=
 CONF_STATIC_EXT=
 CONF_DEBUG=
 CONF_BITS=
-  # Mma 5.1's mcc needs -lpthread for static linking
-CONF_MCLIBS=-lpthread
+CONF_MCLIBS=
 CONF_ARCH_F="-march=native"
 CONF_LDFLAGS=
 CONF_EXE=
 case "$CONF_OS" in
-Darwin)	CONF_LDFLAGS=-Wl,-no_compact_unwind ;;
+  # Mma 5.1's mcc needs -lpthread for static linking
+Linux)	CONF_MCLIBS="-lpthread -lrt" ;;
+Darwin)	CONF_LDFLAGS=-Wl,-no_compact_unwind
+	CONF_AS=-Wa,-q ;;
 CYG*)	CONF_EXE=.exe ;;
 esac
 
@@ -121,7 +123,7 @@ for arg in "$@" ; do
 # so we make only libgcc static.  For a static libg2c do:
 # sudo chmod 000 /usr/local/lib/libg2c.dylib
 	Darwin | CYG*)
-		CONF_STATIC_EXT=$CONF_STATIC
+		CONF_STATIC_EXT=1
 		CONF_STATIC= ;;
 	esac ;;
   --debug)
