@@ -2,7 +2,7 @@
 * retrieve the four-point tensor coefficients
 * this file is part of LoopTools
 * improvements by M. Rauch
-* last modified 20 Jan 16 th
+* last modified 16 Oct 18 th
 
 #include "externals.h"
 #include "types.h"
@@ -14,9 +14,9 @@
 	subroutine XDpara(para, p1, p2, p3, p4, p1p2, p2p3,
      &    m1, m2, m3, m4)
 	implicit none
-	DVAR para(1,*)
-	DVAR p1, p2, p3, p4, p1p2, p2p3
-	DVAR m1, m2, m3, m4
+	ArgType para(1,*)
+	ArgType p1, p2, p3, p4, p1p2, p2p3
+	ArgType m1, m2, m3, m4
 
 #include "lt.h"
 
@@ -42,8 +42,8 @@
 	memindex function XDget(p1, p2, p3, p4, p1p2, p2p3,
      &    m1, m2, m3, m4)
 	implicit none
-	DVAR p1, p2, p3, p4, p1p2, p2p3
-	DVAR m1, m2, m3, m4
+	ArgType p1, p2, p3, p4, p1p2, p2p3
+	ArgType m1, m2, m3, m4
 
 #include "lt.h"
 
@@ -55,7 +55,7 @@
 	external Dget
 #endif
 
-	DVAR para(1,Pdd+3)
+	ArgType para(1,Pdd+3)
 
 #ifdef COMPLEXPARA
 	if( abs(Im(p1)) + abs(Im(p2)) +
@@ -80,14 +80,14 @@
      &    m1, m2, m3, m4)
 	implicit none
 	ComplexType res(*)
-	DVAR p1, p2, p3, p4, p1p2, p2p3
-	DVAR m1, m2, m3, m4
+	ArgType p1, p2, p3, p4, p1p2, p2p3
+	ArgType m1, m2, m3, m4
 
 #include "lt.h"
 
 	external XDcoefx
 
-	DVAR para(1,Pdd+3)
+	ArgType para(1,Pdd+3)
 
 #ifdef COMPLEXPARA
 	if( abs(Im(p1)) + abs(Im(p2)) +
@@ -111,12 +111,13 @@
      &    m1, m2, m3, m4)
 	implicit none
 	ComplexType res(*)
-	DVAR p1, p2, p3, p4, p1p2, p2p3
-	DVAR m1, m2, m3, m4
+	ArgType p1, p2, p3, p4, p1p2, p2p3
+	ArgType m1, m2, m3, m4
 
 #include "lt.h"
 
-	DVAR para(1,Pdd+3)
+	ArgType para(1,Pdd+3)
+	ComplexType res00(0:2)
 
 #ifdef COMPLEXPARA
 	if( abs(Im(p1)) + abs(Im(p2)) +
@@ -132,7 +133,7 @@
 #endif
 
 	call XDpara(para, p1, p2, p3, p4, p1p2, p2p3, m1, m2, m3, m4)
-	call XD0func(res, para)
+	call XD0func(res, res00, para)
 	end
 
 ************************************************************************
@@ -141,8 +142,8 @@
      &    m1, m2, m3, m4)
 	implicit none
 	integer i
-	DVAR p1, p2, p3, p4, p1p2, p2p3
-	DVAR m1, m2, m3, m4
+	ArgType p1, p2, p3, p4, p1p2, p2p3
+	ArgType m1, m2, m3, m4
 
 #include "lt.h"
 
@@ -160,8 +161,8 @@
 	ComplexType function XD0(p1, p2, p3, p4, p1p2, p2p3,
      &    m1, m2, m3, m4)
 	implicit none
-	DVAR p1, p2, p3, p4, p1p2, p2p3
-	DVAR m1, m2, m3, m4
+	ArgType p1, p2, p3, p4, p1p2, p2p3
+	ArgType m1, m2, m3, m4
 
 #include "lt.h"
 
@@ -176,7 +177,7 @@
 	subroutine XDcoefx(D, para)
 	implicit none
 	ComplexType D(*)
-	DVAR para(1,*)
+	ArgType para(1,*)
 
 #include "lt.h"
 
@@ -199,30 +200,23 @@
 	subroutine XDcoeff(D, para, C234, C134, C124, C123)
 	implicit none
 	ComplexType D(*), C234(*), C134(*), C124(*), C123(*)
-	DVAR para(1,*)
+	ArgType para(1,*)
 
 #include "lt.h"
 
-	DVAR p1, p2, p3, p4, p1p2, p2p3, m1, m2, m3, m4
-	DVAR f1, f2, f3
-	QVAR G(3,3)
-	ComplexType c0sum(0:2), c1sum(0:2), c2sum(0:2), csum(0:2)
-	ComplexType c00sum(0:2), c11sum(0:2), c12sum(0:2), c22sum(0:2)
-	ComplexType in(0:2,3)
+	ArgType p1, p2, p3, p4, p1p2, p2p3, m1, m2, m3, m4
+	ArgType f1, f2, f3
+	ArgQuad G(3,3)
+	ComplexQuad c0sum(0:2), c1sum(0:2), c2sum(0:2), csum(0:2)
+	ComplexQuad c00sum(0:2), c11sum(0:2), c12sum(0:2), c22sum(0:2)
+	ComplexQuad in(0:2,3)
 	logical dump
 
-#ifdef SOLVE_EIGEN
-	QVAR Ginv(3,3)
-#define IN(i) in(:,i)
-#define SOLVE_SETUP XInverse(3, G,3, Ginv,3)
-#define SOLVER(b) XSolve(3, G,3, Ginv,3, b)
-#else
 	integer perm(3)
 #define IN(i) in(:,perm(i))
+#define OUT(i) in(:,i)
 #define SOLVE_SETUP XDecomp(3, G,3, perm)
 #define SOLVER(b) XSolve(3, G,3, b)
-#endif
-#define OUT(i) in(:,i)
 
 	integer finite(0:2)
 	data finite /1, 0, 0/
@@ -280,7 +274,7 @@
 	c12sum = C234(CC12) + C234(CC112) + C234(CC122)
 	c22sum = C234(CC22) + C234(CC122) + C234(CC222)
 
-	call XD0func(D(DD0), para)
+	call XD0func(D(DD0), D(DD00), para)
 
 	IN(1) = f1*D(DD0) - C234(CC0) + C134(CC0)
 	IN(2) = f2*D(DD0) - C234(CC0) + C124(CC0)
@@ -290,8 +284,8 @@
 	D(DD2) = OUT(2)
 	D(DD3) = OUT(3)
 
-	D(DD00) = m1*D(DD0) - .5D0*
-     &    (D(DD1)*f1 + D(DD2)*f2 + D(DD3)*f3 - C234(CC0))
+	if( Re(D(dd00)) .eq. -999 ) D(DD00) = m1*D(DD0) -
+     &    .5D0*(D(DD1)*f1 + D(DD2)*f2 + D(DD3)*f3 - C234(CC0))
 
 	IN(1) = f1*D(DD1) + c0sum - 2*D(DD00)
 	IN(2) = f2*D(DD1) + c0sum + C124(CC1)

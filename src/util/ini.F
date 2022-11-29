@@ -1,7 +1,7 @@
 * ini.F
 * routines for initializing and setting some parameters
 * this file is part of LoopTools
-* last modified 3 Sep 14 th
+* last modified 14 Apr 18 th
 
 #include "externals.h"
 #include "types.h"
@@ -16,8 +16,8 @@
 	integer i
 
 	do i = 1, ncaches
-	  cacheptr(1,1,i) = 0
-	  cacheptr(2,1,i) = 0
+	  cacheptr(1,0,i) = 0
+	  cacheptr(2,0,i) = 0
 	  savedptr(1,i) = 0
 	  savedptr(2,i) = 0
 	enddo
@@ -33,8 +33,8 @@
 	integer i
 
 	do i = 1, ncaches
-	  savedptr(1,i) = cacheptr(1,1,i)
-	  savedptr(2,i) = cacheptr(2,1,i)
+	  savedptr(1,i) = cacheptr(1,0,i)
+	  savedptr(2,i) = cacheptr(2,0,i)
 	enddo
 	end
 
@@ -48,8 +48,8 @@
 	integer i
 
 	do i = 1, ncaches
-	  cacheptr(1,1,i) = savedptr(1,i)
-	  cacheptr(2,1,i) = savedptr(2,i)
+	  cacheptr(1,0,i) = savedptr(1,i)
+	  cacheptr(2,0,i) = savedptr(2,i)
 	enddo
 	end
 
@@ -252,6 +252,48 @@
 
 ************************************************************************
 
+	subroutine setdiffeps(diffeps_)
+	implicit none
+	RealType diffeps_
+
+#include "lt.h"
+
+	diffeps = diffeps_
+	end
+
+************************************************************************
+
+	RealType function getdiffeps()
+	implicit none
+
+#include "lt.h"
+
+	getdiffeps = diffeps
+	end
+
+************************************************************************
+
+	subroutine setzeroeps(zeroeps_)
+	implicit none
+	RealType zeroeps_
+
+#include "lt.h"
+
+	zeroeps = zeroeps_
+	end
+
+************************************************************************
+
+	RealType function getzeroeps()
+	implicit none
+
+#include "lt.h"
+
+	getzeroeps = zeroeps
+	end
+
+************************************************************************
+
 	subroutine setwarndigits(warndigits_)
 	implicit none
 	integer warndigits_
@@ -355,7 +397,7 @@
 
 #include "lt.h"
 
-	cmpbits = max(cmpbits_, 8 + KIND*4)
+	cmpbits = max(cmpbits_, 12 + QUAD*4)
 	end
 
 ************************************************************************
@@ -366,48 +408,6 @@
 #include "lt.h"
 
 	getcmpbits = cmpbits
-	end
-
-************************************************************************
-
-	subroutine setdiffeps(diffeps_)
-	implicit none
-	RealType diffeps_
-
-#include "lt.h"
-
-	diffeps = diffeps_
-	end
-
-************************************************************************
-
-	RealType function getdiffeps()
-	implicit none
-
-#include "lt.h"
-
-	getdiffeps = diffeps
-	end
-
-************************************************************************
-
-	subroutine setzeroeps(zeroeps_)
-	implicit none
-	RealType zeroeps_
-
-#include "lt.h"
-
-	zeroeps = zeroeps_
-	end
-
-************************************************************************
-
-	RealType function getzeroeps()
-	implicit none
-
-#include "lt.h"
-
-	getzeroeps = zeroeps
 	end
 
 ************************************************************************
@@ -426,35 +426,34 @@
 
 ************************************************************************
 
-	block data LTNameData
+	block data namedata
 	implicit none
-	integer i
 
 #include "ltnames.h"
 
-	data (paraname(i,1), i = 1, Paa) /
+	data paraname(1:Paa,1) /
      &    "m" /
 
-	data (paraname(i,2), i = 1, Pbb) /
+	data paraname(1:Pbb,2) /
      &    "m1", "m2", "p" /
 
-	data (paraname(i,3), i = 1, Pcc) /
+	data paraname(1:Pcc,3) /
      &    "m1", "m2", "m3", "p1", "p2", "p1p2" /
 
-	data (paraname(i,4), i = 1, Pdd) /
+	data paraname(1:Pdd,4) /
      &    "m1", "m2", "m3", "m4",
      &    "p1", "p2", "p3", "p4", "p1p2", "p2p3" /
 
-	data (paraname(i,5), i = 1, Pee) /
+	data paraname(1:Pee,5) /
      &    "m1", "m2", "m3", "m4", "m5",
      &    "p1", "p2", "p3", "p4", "p5",
      &    "p1p2", "p2p3", "p3p4", "p4p5", "p5p1" /
 
-	data (coeffname(i,1), i = 1, Naa) /
+	data coeffname(1:Naa,1) /
      &    "aa0", "aa0:1", "aa0:2",
      &    "aa00", "aa00:1", "aa00:2" /
 
-	data (coeffname(i,2), i = 1, Nbb) /
+	data coeffname(1:Nbb,2) /
      &    "bb0", "bb0:1", "bb0:2",
      &    "bb1", "bb1:1", "bb1:2",
      &    "bb00", "bb00:1", "bb00:2",
@@ -467,7 +466,7 @@
      &    "dbb11", "dbb11:1", "dbb11:2",
      &    "dbb001", "dbb001:1", "dbb001:2" /
 
-	data (coeffname(i,3), i = 1, Ncc) /
+	data coeffname(1:Ncc,3) /
      &    "cc0", "cc0:1", "cc0:2",
      &    "cc1", "cc1:1", "cc1:2",
      &    "cc2", "cc2:1", "cc2:2",
@@ -491,7 +490,7 @@
      &    "cc1222", "cc1222:1", "cc1222:2",
      &    "cc2222", "cc2222:1", "cc2222:2" /
 
-	data (coeffname(i,4), i = 1, Ndd) /
+	data coeffname(1:Ndd,4) /
      &    "dd0", "dd0:1", "dd0:2",
      &    "dd1", "dd1:1", "dd1:2",
      &    "dd2", "dd2:1", "dd2:2",
@@ -573,7 +572,7 @@
      &    "dd23333", "dd23333:1", "dd23333:2",
      &    "dd33333", "dd33333:1", "dd33333:2" /
 
-	data (coeffname(i,5), i = 1, Nee) /
+	data coeffname(1:Nee,5) /
      &    "ee0", "ee0:1", "ee0:2",
      &    "ee1", "ee1:1", "ee1:2",
      &    "ee2", "ee2:1", "ee2:2",

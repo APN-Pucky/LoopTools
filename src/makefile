@@ -27,7 +27,7 @@ OBJS = $(OBJS-quad) \
   ffxc0.o ffcc0.o ffxc0i.o ffxc0p0.o \
   ffxc0p.o ffcc0p.o ffdxc0.o ffdcc0.o \
   ffdel3.o ffcel3.o \
-  D0func.o D0funcC.o Dget.o DgetC.o \
+  D0func.o D0funcC.o D0z.o Dget.o DgetC.o \
   ffxd0.o ffxd0h.o ffxd0i.o ffxd0p.o \
   ffxd0m0.o ffxd0tra.o ffxdbd.o ffdel4.o ffd0c.o \
   ffTn.o ffT13.o ffS2.o ffS3n.o ffRn.o \
@@ -127,6 +127,8 @@ D0func.o: D0func.F $(LTINC) perm.h
 	$(XFC) -c -o D0func.o D0func.F
 D0funcC.o: D0funcC.F $(LTINC)
 	$(XFC) -c -o D0funcC.o D0funcC.F
+D0z.o: D0z.F $(LTINC)
+	$(XFC) -c -o D0z.o D0z.F
 Dget.o: Dget.F $(LTINC)
 	$(XFC) -c -o Dget.o Dget.F
 DgetC.o: Dget.F $(LTINC)
@@ -187,9 +189,9 @@ ini.o: ini.F $(LTINC)
 	$(XFC) -c -o ini.o ini.F
 auxCD.o: auxCD.F $(LTINC)
 	$(XFC) -c -o auxCD.o auxCD.F
-solve.o: solve.F solve-LU.F solve-Eigen.F $(LTINC)
+solve.o: solve.F $(LTINC)
 	$(XFC) -c -o solve.o solve.F
-solveC.o: solve.F solve-LU.F solve-Eigen.F $(LTINC)
+solveC.o: solve.F $(LTINC)
 	$(CFC) -c -o solveC.o solve.F
 Dump.o: Dump.F $(LTINC)
 	$(XFC) -c -o Dump.o Dump.F
@@ -240,12 +242,12 @@ looptools.h90: looptools.h f77290
 	f77290 looptools.h looptools.h90
 
 $(LIB): $(OBJS)
-	$(AR) cru $(LIB) $?
+	$(AR) $(ARFLAGS) $(LIB) $?
 	-$(RANLIB) $(LIB)
 
 
 $(FE): lt.F $(LTINC) $(LIB)
-	$(XFC) -o $(FE) lt.F $(LIB) -lpthread
+	$(XFC) -o $(FE) lt.F $(LIB) $(LDFLAGS)
 	-rm -f lt.o
 
 clooptools.h: clooptools.h.in ftypes.h

@@ -105,6 +105,12 @@
 	GetZeroEps::usage = "GetZeroEps[] returns the tolerance used in testing numbers for zero."
 
 :Evaluate:
+	LTini::usage = "LTini[] (re-)initializes LoopTools.";
+	LTexi::usage = "LTexi[] gives a summary of all errors and warnings since the last LTini[].";
+	LTnop::usage = "LTnop[] does nothing.";
+	LTwrite::usage = "LTwrite[s] is the function LoopTools calls for printing s."
+
+:Evaluate:
 	DRResult::usage = "DRResult[c0, c1, c2] arranges the coefficients of DR1eps into the final returned to the user.";
 	DR1eps::usage = "DR1eps represents 1/eps where D = 4 - 2 eps."
 
@@ -162,13 +168,15 @@
 	DB1 = B0i[dbb1, ##]&;
 	DB00 = B0i[dbb00, ##]&;
 	DB11 = B0i[dbb11, ##]&;
+	DB001 = B0i[dbb001, ##]&;
 	C0 = C0i[cc0, ##]&;
 	D0 = D0i[dd0, ##]&;
 	E0 = E0i[ee0, ##]&
 
-:Evaluate: Begin["`Private`"]
+:Evaluate:
+	If[!ValueQ[LTwrite], LTwrite = WriteString[$Output, #]&]
 
-:Evaluate: LoopTools`LTwrite[s_] := WriteString[$Output, s]
+:Evaluate: Begin["`Private`"]
 
 :Begin:
 :Function:	mA0i
@@ -453,7 +461,7 @@
 :Pattern:	GetMudim[]
 :Arguments:	{}
 :ArgumentTypes:	{}
-:ReturnType:	Real
+:ReturnType:	Manual
 :End:
 
 :Begin:
@@ -469,7 +477,7 @@
 :Pattern:	GetDelta[]
 :Arguments:	{}
 :ArgumentTypes:	{}
-:ReturnType:	Real
+:ReturnType:	Manual
 :End:
 
 :Begin:
@@ -485,7 +493,7 @@
 :Pattern:	GetUVDiv[]
 :Arguments:	{}
 :ArgumentTypes:	{}
-:ReturnType:	Real
+:ReturnType:	Manual
 :End:
 
 :Begin:
@@ -501,7 +509,7 @@
 :Pattern:	GetLambda[]
 :Arguments:	{}
 :ArgumentTypes:	{}
-:ReturnType:	Real
+:ReturnType:	Manual
 :End:
 
 :Begin:
@@ -509,7 +517,7 @@
 :Pattern:	GetEpsi[]
 :Arguments:	{}
 :ArgumentTypes:	{}
-:ReturnType:	Integer
+:ReturnType:	Manual
 :End:
 
 :Begin:
@@ -525,7 +533,7 @@
 :Pattern:	GetMinMass[]
 :Arguments:	{}
 :ArgumentTypes:	{}
-:ReturnType:	Real
+:ReturnType:	Manual
 :End:
 
 :Begin:
@@ -565,7 +573,7 @@
 :Pattern:	GetMaxDev[]
 :Arguments:	{}
 :ArgumentTypes:	{}
-:ReturnType:	Real
+:ReturnType:	Manual
 :End:
 
 :Begin:
@@ -581,7 +589,7 @@
 :Pattern:	GetWarnDigits[]
 :Arguments:	{}
 :ArgumentTypes:	{}
-:ReturnType:	Integer
+:ReturnType:	Manual
 :End:
 
 :Begin:
@@ -597,7 +605,7 @@
 :Pattern:	GetErrDigits[]
 :Arguments:	{}
 :ArgumentTypes:	{}
-:ReturnType:	Integer
+:ReturnType:	Manual
 :End:
 
 :Begin:
@@ -613,7 +621,7 @@
 :Pattern:	GetVersionKey[]
 :Arguments:	{}
 :ArgumentTypes:	{}
-:ReturnType:	Integer
+:ReturnType:	Manual
 :End:
 
 :Begin:
@@ -629,7 +637,7 @@
 :Pattern:	GetDebugKey[]
 :Arguments:	{}
 :ArgumentTypes:	{}
-:ReturnType:	Integer
+:ReturnType:	Manual
 :End:
 
 :Begin:
@@ -653,7 +661,7 @@
 :Pattern:	GetCmpBits[]
 :Arguments:	{}
 :ArgumentTypes:	{}
-:ReturnType:	Integer
+:ReturnType:	Manual
 :End:
 
 :Begin:
@@ -669,7 +677,7 @@
 :Pattern:	GetDiffEps[]
 :Arguments:	{}
 :ArgumentTypes:	{}
-:ReturnType:	Real
+:ReturnType:	Manual
 :End:
 
 :Begin:
@@ -685,7 +693,31 @@
 :Pattern:	GetZeroEps[]
 :Arguments:	{}
 :ArgumentTypes:	{}
-:ReturnType:	Real
+:ReturnType:	Manual
+:End:
+
+:Begin:
+:Function:	mltini
+:Pattern:	LTini[]
+:Arguments:	{}
+:ArgumentTypes:	{}
+:ReturnType:	Manual
+:End:
+
+:Begin:
+:Function:	mltexi
+:Pattern:	LTexi[]
+:Arguments:	{}
+:ArgumentTypes:	{}
+:ReturnType:	Manual
+:End:
+
+:Begin:
+:Function:	mltnop
+:Pattern:	LTnop[]
+:Arguments:	{}
+:ArgumentTypes:	{}
+:ReturnType:	Manual
 :End:
 
 :Evaluate: r = Head[# + 1.] === Real &
@@ -720,7 +752,7 @@
 	ltdefs[off_, h_] := StringJoin@@ MapThread[{ h[off]@@@ #,
 	  "#define ", #2, " ", ToString[3 Length[#]], "\n\n" }&,
 	  {LTids, {"Naa", "Nbb", "Ncc", "Ndd", "Nee"}}];
-	ltwrite[] := {
+	ltwritedefs[] := {
 	  WriteString["for_looptools.h", ltdefs[0, ltdef1]];
 	  WriteString["for_clooptools.h.in", ltdefs[-1, ltdef1]];
 	  WriteString["for_defs.h", ltdefs[0, ltdef2]] }
@@ -729,12 +761,17 @@
 
 :Evaluate: EndPackage[]
 
+:Evaluate:
+	($Post := (LTnop[]; OwnValues[$Post] = #; $Post /. $Post -> Identity))& @
+	  OwnValues[$Post];
+	($Epilog := (LTexi[]; OwnValues[$Epilog] = #; $Epilog))& @
+	  OwnValues[$Epilog];
 
 /*
 	LoopTools.tm
 		provides the LoopTools functions in Mathematica
 		this file is part of LoopTools
-		last modified 3 Jul 17 th
+		last modified 28 Aug 20 th
 */
 
 
@@ -747,6 +784,8 @@
 #include <sched.h>
 #include <pthread.h>
 #include <sys/socket.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <assert.h>
 
 #include "mathlink.h"
@@ -754,10 +793,7 @@
 #define MLCONST
 #endif
 
-#if QUAD
-#undef QUAD
-#define QUAD 2
-#endif
+#define CQUADSIZE 10
 #include "clooptools.h"
 
 typedef unsigned char byte;
@@ -767,8 +803,7 @@ typedef const long clong;
 
 #if QUAD
 #define MLPutREAL MLPutReal128
-static inline void MLPutREALList(MLINK mlp, CREAL *s, long n)
-{
+static inline void MLPutREALList(MLINK mlp, CREAL *s, long n) {
   RealType d[n];
   int i;
   for( i = 0; i < n; ++i ) d[i] = ToReal(s[i]);
@@ -779,51 +814,104 @@ static inline void MLPutREALList(MLINK mlp, CREAL *s, long n)
 #define MLPutREALList MLPutRealList
 #endif
 
-static int stdoutorig, stdoutpipe[2], stdoutthr;
+static int stdoutorig = -1, stdoutpipe[2] = {2, 2}, stdoutthr = 0;
+static byte *stdoutbuf = NULL;
 
-extern void FORTRAN(fortranflush)();
+//#define DEBUG
+#ifdef DEBUG
+static FILE *deb;
+#define DEB(...) fprintf(deb, __VA_ARGS__)
+#else
+#define DEB(...)
+#endif
 
-#define Flush() \
-  FORTRAN(fortranflush)(); \
-  fflush(stdout)
+static inline void mlPutFunction(MLINK mlp, cchar *fun, cint args) {
+  MLPutFunction(mlp, fun, args);
+  DEB("MLPutFunction(\"%s\", %d)\n", fun, args);
+}
 
-#define BeginRedirect() \
-  dup2(stdoutpipe[1], 1)
+static inline void mlPutSymbol(MLINK mlp, cchar *sym) {
+  MLPutSymbol(mlp, sym);
+  DEB("MLPutSymbol(\"%s\")\n", sym);
+}
 
-#define EndRedirect() \
-  Flush(); \
-  if( stdoutthr ) { \
-    char eot = 0; \
-    write(1, &eot, 1); \
-    read(1, &eot, 1); \
-  } \
-  dup2(stdoutorig, 1)
+static inline void mlPutReal(MLINK mlp, cRealType r) {
+  MLPutReal(mlp, r);
+  DEB("MLPutReal(%lg)\n", r);
+}
 
+static inline void mlPutInteger(MLINK mlp, cint i) {
+  MLPutInteger(mlp, i);
+  DEB("MLPutInteger(%d)\n", i);
+}
+
+static inline void mlPutByteString(MLINK mlp, byte *s, size_t len) {
+  MLPutByteString(mlp, s, len);
+  DEB("MLPutByteString(\"%*s\", %lu)\n", (int)len, s, len);
+}
+
+static inline void mlEndPacket(MLINK mlp) {
+  MLEndPacket(mlp);
+  DEB("MLEndPacket\n");
+}
+
+static inline void mlNewPacket(MLINK mlp) {
+  MLNewPacket(mlp);
+  DEB("MLNewPacket\n");
+}
+
+static inline void mlNextPacket(MLINK mlp) {
+  MLNextPacket(mlp);
+  DEB("MLNextPacket\n");
+}
 
 /******************************************************************/
 
-static void *MLstdout(void *pfd)
-{
-  int fd = ((int *)pfd)[0];
-  byte *buf = NULL;
-  long size = 0;
+#define CaptureStdout() \
+  DEB("%s\n", __FUNCTION__); \
+  dup2(stdoutpipe[1], 1)
+
+#define ReleaseStdout() \
+  dup2(stdoutorig, 1)
+
+static inline void mlPutStdout(MLINK mlp) {
+  long len;
+  extern void FORTRAN(fortranflush)();
+char buf[1024];
+
+  FORTRAN(fortranflush)();
+  fflush(stdout);
+
+  if( stdoutthr ) {
+    write(1, "", 1);
+    read(1, &len, sizeof len);
+    if( len > 1 ) {
+      DEB("MLPutStdout <<\n");
+      mlPutFunction(mlp, "EvaluatePacket", 1);
+      mlPutFunction(mlp, "LoopTools`LTwrite", 1);
+      mlPutByteString(mlp, stdoutbuf, len - 1);
+      mlNextPacket(stdlink);
+      mlNewPacket(stdlink);
+      DEB(">>\n");
+    }
+  }
+
+  ReleaseStdout();
+}
+
+/******************************************************************/
+
+static void *capturestdout(void *pfd) {
+  cint fd = ((int *)pfd)[0];
+  long size = 0, len = 0, n;
   enum { unit = 10240 };
-  long len = 0, n;
 
   do {
-    if( size - len < 128 ) buf = realloc(buf, size += unit);
-    len += n = read(fd, buf + len, size - len);
-    if( len > 0 && buf[len-1] == 0 ) {
-      if( len > 1 ) {
-        MLPutFunction(stdlink, "EvaluatePacket", 1);
-        MLPutFunction(stdlink, "LoopTools`LTwrite", 1);
-        MLPutByteString(stdlink, buf, len - 1);
-        MLEndPacket(stdlink);
-        MLNextPacket(stdlink);
-        MLNewPacket(stdlink);
-      }
+    if( size - len < 128 ) stdoutbuf = realloc(stdoutbuf, size += unit);
+    len += n = read(fd, stdoutbuf + len, size - len);
+    if( len > 0 && stdoutbuf[len-1] == 0 ) {
+      write(fd, &len, sizeof len);
       len = 0;
-      write(fd, "", 1);
     }
   } while( n > 0 );
 
@@ -832,25 +920,49 @@ static void *MLstdout(void *pfd)
 
 /******************************************************************/
 
+#define SetReal(fun,val) \
+  CaptureStdout(); \
+  fun(val); \
+  mlPutStdout(stdlink); \
+  mlPutReal(stdlink, val); \
+  mlEndPacket(stdlink)
+
+#define GetReal(fun) \
+  mlPutReal(stdlink, fun()); \
+  mlEndPacket(stdlink)
+
+#define SetInteger(fun,val) \
+  CaptureStdout(); \
+  fun(val); \
+  mlPutStdout(stdlink); \
+  mlPutInteger(stdlink, val); \
+  mlEndPacket(stdlink)
+
+#define GetInteger(fun) \
+  mlPutInteger(stdlink, fun()); \
+  mlEndPacket(stdlink)
+
+/******************************************************************/
+
 #define ReturnComplex(expr) \
   ComplexType result; \
-  BeginRedirect(); \
+  CaptureStdout(); \
   result = expr; \
-  EndRedirect(); \
-  MLPutComplex(stdlink, result); \
-  MLEndPacket(stdlink)
+  mlPutStdout(stdlink); \
+  mlPutComplex(stdlink, result); \
+  mlEndPacket(stdlink)
 
 #define ReturnList(i, expr, n) \
   COMPLEX *list; \
-  BeginRedirect(); \
+  CaptureStdout(); \
   list = expr; \
-  EndRedirect(); \
-  MLPutList(stdlink, i, list, n); \
-  MLEndPacket(stdlink)
+  mlPutStdout(stdlink); \
+  mlPutList(stdlink, i, list, n); \
+  mlEndPacket(stdlink)
 
 #define ReturnVoid() \
-  MLPutSymbol(stdlink, "Null"); \
-  MLEndPacket(stdlink)
+  mlPutSymbol(stdlink, "Null"); \
+  mlEndPacket(stdlink)
 
 #define _Id_(v) v
 #define _Mr_(v) cRealType v
@@ -859,8 +971,8 @@ static void *MLstdout(void *pfd)
 
 /******************************************************************/
 
-static inline void MLPutComplex(MLINK mlp, cComplexType c)
-{
+static inline void mlPutComplex(MLINK mlp, cComplexType c) {
+  DEB("MLPutComplex(%lg,%lg)\n", Re(c), Im(c));
   if( Im(c) == 0 ) MLPutREAL(mlp, Re(c));
   else {
     MLPutFunction(mlp, "Complex", 2);
@@ -871,8 +983,8 @@ static inline void MLPutComplex(MLINK mlp, cComplexType c)
 
 /******************************************************************/
 
-static inline void MLPutList(MLINK mlp, cint i, COMPLEX *list, cint n)
-{
+static inline void mlPutList(MLINK mlp, cint i, COMPLEX *list, cint n) {
+  DEB("MLPutList(%d, %d)\n", i, n);
   MLPutFunction(mlp, "LoopTools`Private`idlist", 2);
   MLPutInteger(mlp, i);
   MLPutREALList(mlp, (REAL *)list, 2*n);
@@ -880,384 +992,355 @@ static inline void MLPutList(MLINK mlp, cint i, COMPLEX *list, cint n)
 
 /******************************************************************/
 
-static void mA0i(cint i, AARGS(_Mr_))
-{
+static void mA0i(cint i, AARGS(_Mr_)) {
   ReturnComplex(A0i(i-1, AARGS(_Id_)));
 }
 
-static void mA0ic(cint i, AARGS(_Mri_))
-{
+static void mA0ic(cint i, AARGS(_Mri_)) {
   ReturnComplex(A0iC(i-1, AARGS(_Mc_)));
 }
 
 /******************************************************************/
 
-static void mAget(AARGS(_Mr_))
-{
+static void mAget(AARGS(_Mr_)) {
   ReturnList(1, Acache(Aget(AARGS(_Id_))), Naa);
 }
 
-static void mAgetc(AARGS(_Mri_))
-{
+static void mAgetc(AARGS(_Mri_)) {
   ReturnList(1, AcacheC(AgetC(AARGS(_Mc_))), Naa);
 }
 
 /******************************************************************/
 
-static void mB0i(cint i, BARGS(_Mr_))
-{
+static void mB0i(cint i, BARGS(_Mr_)) {
   ReturnComplex(B0i(i-1, BARGS(_Id_)));
 }
 
-static void mB0ic(cint i, BARGS(_Mri_))
-{
+static void mB0ic(cint i, BARGS(_Mri_)) {
   ReturnComplex(B0iC(i-1, BARGS(_Mc_)));
 }
 
 /******************************************************************/
 
-static void mBget(BARGS(_Mr_))
-{
+static void mBget(BARGS(_Mr_)) {
   ReturnList(2, Bcache(Bget(BARGS(_Id_))), Nbb);
 }
 
-static void mBgetc(BARGS(_Mri_))
-{
+static void mBgetc(BARGS(_Mri_)) {
   ReturnList(2, BcacheC(BgetC(BARGS(_Mc_))), Nbb);
 }
 
 /******************************************************************/
 
-static void mC0i(cint i, CARGS(_Mr_))
-{
+static void mC0i(cint i, CARGS(_Mr_)) {
   ReturnComplex(C0i(i-1, CARGS(_Id_)));
 }
 
-static void mC0ic(cint i, CARGS(_Mri_))
-{
+static void mC0ic(cint i, CARGS(_Mri_)) {
   ReturnComplex(C0iC(i-1, CARGS(_Mc_)));
 }
 
 /******************************************************************/
 
-static void mCget(CARGS(_Mr_))
-{
+static void mCget(CARGS(_Mr_)) {
   ReturnList(3, Ccache(Cget(CARGS(_Id_))), Ncc);
 }
 
-static void mCgetc(CARGS(_Mri_))
-{
+static void mCgetc(CARGS(_Mri_)) {
   ReturnList(3, CcacheC(CgetC(CARGS(_Mc_))), Ncc);
 }
 
 /******************************************************************/
 
-static void mD0i(cint i, DARGS(_Mr_))
-{
+static void mD0i(cint i, DARGS(_Mr_)) {
   ReturnComplex(D0i(i-1, DARGS(_Id_)));
 }
 
-static void mD0ic(cint i, DARGS(_Mri_))
-{
+static void mD0ic(cint i, DARGS(_Mri_)) {
   ReturnComplex(D0iC(i-1, DARGS(_Mc_)));
 }
 
 /******************************************************************/
 
-static void mDget(DARGS(_Mr_))
-{
+static void mDget(DARGS(_Mr_)) {
   ReturnList(4, Dcache(Dget(DARGS(_Id_))), Ndd);
 }
 
-static void mDgetc(DARGS(_Mri_))
-{
+static void mDgetc(DARGS(_Mri_)) {
   ReturnList(4, DcacheC(DgetC(DARGS(_Mc_))), Ndd);
 }
 
 /******************************************************************/
 
-static void mE0i(cint i, EARGS(_Mr_))
-{
+static void mE0i(cint i, EARGS(_Mr_)) {
   ReturnComplex(E0i(i-1, EARGS(_Id_)));
 }
 
-static void mE0ic(cint i, EARGS(_Mri_))
-{
+static void mE0ic(cint i, EARGS(_Mri_)) {
   ReturnComplex(E0iC(i-1, EARGS(_Mc_)));
 }
 
 /******************************************************************/
 
-static void mEget(EARGS(_Mr_))
-{
+static void mEget(EARGS(_Mr_)) {
   ReturnList(5, Ecache(Eget(EARGS(_Id_))), Nee);
 }
 
-static void mEgetc(EARGS(_Mri_))
-{
+static void mEgetc(EARGS(_Mri_)) {
   ReturnList(5, EcacheC(EgetC(EARGS(_Mc_))), Nee);
 }
 
 /******************************************************************/
 
-static void mLi2(XARGS(_Mr_))
-{
+static void mLi2(XARGS(_Mr_)) {
   ReturnComplex(Li2(XARGS(_Id_)));
 }
 
-static void mLi2c(XARGS(_Mri_))
-{
+static void mLi2c(XARGS(_Mri_)) {
   ReturnComplex(Li2C(XARGS(_Mc_)));
 }
 
-static void mLi2omx(XARGS(_Mr_))
-{
+static void mLi2omx(XARGS(_Mr_)) {
   ReturnComplex(Li2omx(XARGS(_Id_)));
 }
 
-static void mLi2omxc(XARGS(_Mri_))
-{
+static void mLi2omxc(XARGS(_Mri_)) {
   ReturnComplex(Li2omxC(XARGS(_Mc_)));
 }
 
 /******************************************************************/
 
-static void mclearcache(void)
-{
+static void mclearcache(void) {
   clearcache();
   ReturnVoid();
 }
 
-static void mmarkcache(void)
-{
+static void mmarkcache(void) {
   markcache();
   ReturnVoid();
 }
 
-static void mrestorecache(void)
-{
+static void mrestorecache(void) {
   restorecache();
   ReturnVoid();
 }
 
 /******************************************************************/
 
-static void msetmudim(cRealType mudim)
-{
-  setmudim(mudim);
-  ReturnVoid();
+static void msetmudim(cRealType mudim) {
+  SetReal(setmudim, mudim);
 }
 
-static RealType mgetmudim(void)
-{
-  return getmudim();
+static void mgetmudim(void) {
+  GetReal(getmudim);
 }
 
 /******************************************************************/
 
-static void msetdelta(cRealType delta)
-{
-  setdelta(delta);
-  ReturnVoid();
+static void msetdelta(cRealType delta) {
+  SetReal(setdelta, delta);
 }
 
-static RealType mgetdelta(void)
-{
-  return getdelta();
+static void mgetdelta(void) {
+  GetReal(getdelta);
 }
 
 /******************************************************************/
 
-static void msetuvdiv(cRealType uvdiv)
-{
-  setuvdiv(uvdiv);
-  ReturnVoid();
+static void msetuvdiv(cRealType uvdiv) {
+  SetReal(setuvdiv, uvdiv);
 }
 
-static RealType mgetuvdiv(void)
-{
-  return getuvdiv();
+static void mgetuvdiv(void) {
+  GetReal(getuvdiv);
 }
 
 /******************************************************************/
 
-static void msetlambda(cRealType lambda)
-{
-  setlambda(lambda);
-  ReturnVoid();
+static void msetlambda(cRealType lambda) {
+  SetReal(setlambda, lambda);
 }
 
-static RealType mgetlambda(void)
-{
-  return getlambda();
+static void mgetlambda(void) {
+  GetReal(getlambda);
 }
 
-static int mgetepsi(void)
-{
-  return getepsi();
+static void mgetepsi(void) {
+  GetInteger(getepsi);
 }
 
 /******************************************************************/
 
-static void msetminmass(cRealType minmass)
-{
-  setminmass(minmass);
-  ReturnVoid();
+static void msetminmass(cRealType minmass) {
+  SetReal(setminmass, minmass);
 }
 
-static RealType mgetminmass(void)
-{
-  return getminmass();
+static void mgetminmass(void) {
+  GetReal(getminmass);
 }
 
 /******************************************************************/
 
-static void msetmaxdev(cRealType maxdev)
-{
-  setmaxdev(maxdev);
-  ReturnVoid();
+static void msetmaxdev(cRealType maxdev) {
+  SetReal(setmaxdev, maxdev);
 }
 
-static RealType mgetmaxdev(void)
-{
-  return getmaxdev();
+static void mgetmaxdev(void) {
+  GetReal(getmaxdev);
 }
 
 /******************************************************************/
 
-static void msetwarndigits(cint warndigits)
-{
-  setwarndigits(warndigits);
-  ReturnVoid();
+static void msetwarndigits(cint warndigits) {
+  SetInteger(setwarndigits, warndigits);
 }
 
-static int mgetwarndigits(void)
-{
-  return getwarndigits();
+static void mgetwarndigits(void) {
+  GetInteger(getwarndigits);
 }
 
 /******************************************************************/
 
-static void mseterrdigits(cint errdigits)
-{
-  seterrdigits(errdigits);
-  ReturnVoid();
+static void mseterrdigits(cint errdigits) {
+  SetInteger(seterrdigits, errdigits);
 }
 
-static int mgeterrdigits(void)
-{
-  return geterrdigits();
+static void mgeterrdigits(void) {
+  GetInteger(geterrdigits);
 }
 
 /******************************************************************/
 
-static void msetversionkey(cint versionkey)
-{
-  setversionkey(versionkey);
-  ReturnVoid();
+static void msetversionkey(cint versionkey) {
+  SetInteger(setversionkey, versionkey);
 }
 
-static int mgetversionkey(void)
-{
-  return getversionkey();
+static void mgetversionkey(void) {
+  GetInteger(getversionkey);
 }
 
 /******************************************************************/
 
-static void msetdebugkey(cint debugkey)
-{
-  setdebugkey(debugkey);
-  ReturnVoid();
+static void msetdebugkey(cint debugkey) {
+  SetInteger(setdebugkey, debugkey);
 }
 
-static int mgetdebugkey(void)
-{
-  return getdebugkey();
+static void mgetdebugkey(void) {
+  GetInteger(getdebugkey);
 }
 
 /******************************************************************/
 
-static void msetdebugrange(cint debugfrom, cint debugto)
-{
+static void msetdebugrange(cint debugfrom, cint debugto) {
   setdebugrange(debugfrom, debugto);
+  mlPutFunction(stdlink, "List", 2);
+  mlPutInteger(stdlink, debugfrom);
+  mlPutInteger(stdlink, debugto);
+  mlEndPacket(stdlink);
+}
+
+/******************************************************************/
+
+static void msetcmpbits(cint cmpbits) {
+  SetInteger(setcmpbits, cmpbits);
+}
+
+static void mgetcmpbits(void) {
+  GetInteger(getcmpbits);
+}
+
+/******************************************************************/
+
+static void msetdiffeps(cRealType diffeps) {
+  SetReal(setdiffeps, diffeps);
+}
+
+static void mgetdiffeps(void) {
+  GetReal(getdiffeps);
+}
+
+/******************************************************************/
+
+static void msetzeroeps(cRealType zeroeps) {
+  SetReal(setzeroeps, zeroeps);
+}
+
+static void mgetzeroeps(void) {
+  GetReal(getzeroeps);
+}
+
+/******************************************************************/
+
+static void mltini(void) {
+  CaptureStdout();
+  ltini();
+  mlPutStdout(stdlink);
+  ReturnVoid();
+}
+
+static void mltexi(void) {
+  CaptureStdout();
+  ltexi();
+  mlPutStdout(stdlink);
+  ReturnVoid();
+}
+
+static void mltnop(void) {
+  CaptureStdout();
+  mlPutStdout(stdlink);
   ReturnVoid();
 }
 
 /******************************************************************/
 
-static void msetcmpbits(cint cmpbits)
-{
-  setcmpbits(cmpbits);
-  ReturnVoid();
+static inline void openstdout() {
+  int fd = open("/dev/null", O_WRONLY);
+  dup2(fd, 1);
+  close(fd);
 }
 
-static int mgetcmpbits(void)
-{
-  return getcmpbits();
-}
-
-/******************************************************************/
-
-static void msetdiffeps(cRealType diffeps)
-{
-  setdiffeps(diffeps);
-  ReturnVoid();
-}
-
-static RealType mgetdiffeps(void)
-{
-  return getdiffeps();
+static void __attribute__((constructor(4711))) make_sure_stdout_is_open() {
+  if( fcntl(1, F_GETFD) == -1 ) openstdout();
 }
 
 /******************************************************************/
 
-static void msetzeroeps(cRealType zeroeps)
-{
-  setzeroeps(zeroeps);
-  ReturnVoid();
-}
-
-static RealType mgetzeroeps(void)
-{
-  return getzeroeps();
-}
-
-/******************************************************************/
-
-int main(int argc, char **argv)
-{
-  int fd, ret;
+int main(int argc, char **argv) {
+  int mlerr;
   pthread_t stdouttid;
   void *thr_ret;
 
-	/* make sure a pipe will not overlap with 0, 1, 2 */
-  do fd = open("/dev/null", O_WRONLY); while( fd <= 2 );
-  close(fd);
+#ifdef DEBUG
+  deb = fopen("/tmp/ltdebug.out", "w");
+  setbuf(deb, NULL);
+#endif
 
-  stdoutorig = dup(1);
+  if( getenv("LTFORCESTDERR") == NULL ) {
+    stdoutorig = dup(1);
+    if( stdoutorig == -1 && getenv("LTRESPAWN") == NULL ) {
+      openstdout();
+      putenv("LTRESPAWN=1");
+      execv(argv[0], argv);
+      exit(1);
+    }
+    stdoutthr =
+      socketpair(AF_LOCAL, SOCK_STREAM, 0, stdoutpipe) != -1 &&
+      pthread_create(&stdouttid, NULL, capturestdout, stdoutpipe) == 0;
+  }
 
-  dup2(2, 1);
+  CaptureStdout();
   ltini();
-  Flush();
-  dup2(stdoutorig, 1);
+  ReleaseStdout();
 
-  stdoutthr = getenv("LTFORCESTDERR") == NULL &&
-    socketpair(AF_LOCAL, SOCK_STREAM, 0, stdoutpipe) != -1 &&
-    pthread_create(&stdouttid, NULL, MLstdout, stdoutpipe) == 0;
-  if( stdoutthr == 0 ) stdoutpipe[1] = 2;
-
-  ret = MLMain(argc, argv);
-
-  dup2(2, 1);
-  ltexi();
-  Flush();
-  dup2(stdoutorig, 1);
+  DEB("begin MLMain\n");
+  mlerr = MLMain(argc, argv);
+  DEB("end MLMain\n");
 
   if( stdoutthr ) {
     close(stdoutpipe[1]);
     pthread_join(stdouttid, &thr_ret);
   }
 
-  return ret;
+  return mlerr;
 }
 
